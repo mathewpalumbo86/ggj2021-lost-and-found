@@ -4,5 +4,5 @@ using UnityEngine;
 
 public interface IDig 
 {
-    IMetal Dig(Vector3 position);
+    void Dig(Vector3 position, float force);
 }

@@ -6,7 +6,7 @@ public abstract class PlayerTool : MonoBehaviour
 {
     protected virtual void Awake()
     {
-        GetComponentInParent<PlayerToolHolder>().AddTool(this);
+        //GetComponentInParent<PlayerToolHolder>().AddTool(this);
     }
 
 }
