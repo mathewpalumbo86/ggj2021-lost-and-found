@@ -2,9 +2,8 @@
 {
     Properties
     {
-        _Color ("Color", Color) = (1,1,1,1)
+        [MainColor] _BaseColor ("Color", Color) = (1,1,1,1)
         
-        /*--->*/
         [Space(10)]
         [KeywordEnum(None, Single, Steps, Curve)]_CelPrimaryMode("Cel Shading Mode", Float) = 1
         _ColorDim ("[_CELPRIMARYMODE_SINGLE]Color Shaded", Color) = (0.85023, 0.85034, 0.85045, 0.85056)
@@ -48,60 +47,80 @@
         
         [Space(10)]
         [Toggle(DR_VERTEX_COLORS_ON)] _VertexColorsEnabled("Enable Vertex Colors", Int) = 0
-        
-        _LightContribution("[FOLDOUT(Advanced Lighting){1}]Light Color Contribution", Range(0, 1)) = 0
-        
+
+        /*_FLAT_KIT_BUILT_IN_BEGIN_
+        _LightContribution("[FOLDOUT(Advanced Lighting){4}]Light Color Contribution", Range(0, 1)) = 0
+        _FLAT_KIT_BUILT_IN_END_*/
+        //_FLAT_KIT_URP_BEGIN_
+        _LightContribution("[FOLDOUT(Advanced Lighting){5}]Light Color Contribution", Range(0, 1)) = 0
+        _LightFalloffSize("Falloff size (point / spot)", Range(0.0001, 1)) = 0.0001
+        //_FLAT_KIT_URP_END_
+
+        // Used to provide light direction to cel shading if all light in the scene is baked.
+        [Header(Override light direction)][Space]
+        [Toggle]_OverrideLightmapDir("[DR_ENABLE_LIGHTMAP_DIR]Enable", Int) = 0
+        _LightmapDirectionPitch("Pitch", Range(0, 360)) = 0
+        _LightmapDirectionYaw("Yaw", Range(0, 360)) = 0
+        [HideInInspector] _LightmapDirection("Override Light Direction", Vector) = (0, 1, 0, 0)
+
         [KeywordEnum(None, Multiply, Color)] _UnityShadowMode ("[FOLDOUT(Unity Built-in Shadows){4}]Mode", Float) = 0
         _UnityShadowPower("[_UNITYSHADOWMODE_MULTIPLY]Power", Range(0, 1)) = 0.2
         _UnityShadowColor("[_UNITYSHADOWMODE_COLOR]Color", Color) = (0.85023, 0.85034, 0.85045, 0.85056)
         _UnityShadowSharpness("Sharpness", Range(1, 10)) = 1.0
-        
-        [Space(10)]
-        _MainTex ("[FOLDOUT(Texture maps){4}]Albedo", 2D) = "white" {}
-        [KeywordEnum(Multiply, Add)]_TextureBlendingMode("Blending Mode", Float) = 0
-        _TextureImpact("Texture Impact", Range(0, 1)) = 1.0
 
-        [Space(10)]
-        _BumpMap ("Bump Map", 2D) = "bump" {}
+        [MainTexture] _BaseMap("[FOLDOUT(Texture maps){4}]Albedo", 2D) = "white" {}
+        [Space][KeywordEnum(Multiply, Add)]_TextureBlendingMode("[_]Blending Mode", Float) = 0
+        [Space]_TextureImpact("[_]Texture Impact", Range(0, 1)) = 1.0
+        
+        [Space(20)]_BumpMap ("Bump Map", 2D) = "bump" {}
+
+        // Blending state
+        [HideInInspector] _Surface("__surface", Float) = 0.0
+        [HideInInspector] _Blend("__blend", Float) = 0.0
+        [HideInInspector] _AlphaClip("__clip", Float) = 0.0
+        [HideInInspector] _SrcBlend("__src", Float) = 1.0
+        [HideInInspector] _DstBlend("__dst", Float) = 0.0
+        [HideInInspector] _ZWrite("__zw", Float) = 1.0
+        [HideInInspector] _Cull("__cull", Float) = 2.0
+
+        // Editmode props
+        [HideInInspector] _QueueOffset("Queue offset", Float) = 0.0
+
+        // ObsoleteProperties
+        [HideInInspector] _MainTex("BaseMap", 2D) = "white" {}
+        [HideInInspector] _Color("Base Color", Color) = (1, 1, 1, 1)
 
         [Space(25)]
         _OutlineColor("Outline Color", Color) = (0.85023, 0.85034, 0.85045, 0.85056)
         _OutlineWidth("Outline Width", Float) = 0.01
         _OutlineDepthOffset("Outline Depth Offset", Range(0, 1)) = 0.0
     }
-    
+
+    // -----------------------------------------------
+    /*_FLAT_KIT_BUILT_IN_BEGIN_
     SubShader
     {
-        Tags { "RenderType"="Opaque" }
+        Tags {
+            "RenderType"="Opaque"
+        }
         LOD 200
 
         CGPROGRAM
-        // Doc: https://docs.unity3d.com/Manual/SL-SurfaceShaders.html
         #include "DustyroomStylizedLighting.cginc"
+        // Doc: https://docs.unity3d.com/Manual/SL-SurfaceShaders.html
         #pragma surface surfObject DustyroomStylized vertex:vertObject fullforwardshadows
-        #pragma target 3.0
         #pragma require interpolators15
+        #pragma target 3.0
         #define Input InputObject
 
-// #if UNITY_VERSION >= 201910
-        // #pragma shader_feature_local __ _CELPRIMARYMODE_SINGLE _CELPRIMARYMODE_STEPS _CELPRIMARYMODE_CURVE
-        // #pragma shader_feature_local DR_CEL_EXTRA_ON
-        // #pragma shader_feature_local DR_GRADIENT_ON
-        // #pragma shader_feature_local DR_SPECULAR_ON
-        // #pragma shader_feature_local DR_RIM_ON
-        // #pragma shader_feature_local DR_VERTEX_COLORS_ON
-        // #pragma shader_feature_local __ _UNITYSHADOWMODE_MULTIPLY _UNITYSHADOWMODE_COLOR
-        // #pragma shader_feature_local _TEXTUREBLENDINGMODE_MULTIPLY _TEXTUREBLENDINGMODE_ADD
-// #else
-        #pragma shader_feature __ _CELPRIMARYMODE_SINGLE _CELPRIMARYMODE_STEPS _CELPRIMARYMODE_CURVE
-        #pragma shader_feature DR_CEL_EXTRA_ON
-        #pragma shader_feature DR_GRADIENT_ON
-        #pragma shader_feature DR_SPECULAR_ON
-        #pragma shader_feature DR_RIM_ON
-        #pragma shader_feature DR_VERTEX_COLORS_ON
-        #pragma shader_feature __ _UNITYSHADOWMODE_MULTIPLY _UNITYSHADOWMODE_COLOR
-        #pragma shader_feature _TEXTUREBLENDINGMODE_MULTIPLY _TEXTUREBLENDINGMODE_ADD
-// #endif
+        #pragma shader_feature_local __ _CELPRIMARYMODE_SINGLE _CELPRIMARYMODE_STEPS _CELPRIMARYMODE_CURVE
+        #pragma shader_feature_local DR_CEL_EXTRA_ON
+        #pragma shader_feature_local DR_GRADIENT_ON
+        #pragma shader_feature_local DR_SPECULAR_ON
+        #pragma shader_feature_local DR_RIM_ON
+        #pragma shader_feature_local DR_VERTEX_COLORS_ON
+        #pragma shader_feature_local __ _UNITYSHADOWMODE_MULTIPLY _UNITYSHADOWMODE_COLOR
+        #pragma shader_feature_local _TEXTUREBLENDINGMODE_MULTIPLY _TEXTUREBLENDINGMODE_ADD
 
         #pragma skip_variants POINT_COOKIE DIRECTIONAL_COOKIE
 
@@ -111,30 +130,84 @@
             Cull Front
 
             CGPROGRAM
+            #include "UnityInstancing.cginc"
 
             #pragma vertex VertexProgram
             #pragma fragment FragmentProgram
 
-            half4 _OutlineColor;
-            half _OutlineWidth;
-            half _OutlineDepthOffset;
+            UNITY_INSTANCING_BUFFER_START(OutlineProps)
+            UNITY_DEFINE_INSTANCED_PROP(half4, _OutlineColor)
+            UNITY_DEFINE_INSTANCED_PROP(half, _OutlineWidth)
+            UNITY_DEFINE_INSTANCED_PROP(half, _OutlineDepthOffset)
+            UNITY_INSTANCING_BUFFER_END(OutlineProps)
 
             float4 VertexProgram(float4 position : POSITION, float3 normal : NORMAL) : SV_POSITION {
                 float4 clipPosition = UnityObjectToClipPos(position);
                 float3 clipNormal = mul((float3x3) UNITY_MATRIX_VP, mul((float3x3) UNITY_MATRIX_M, normal));
-                float2 offset = normalize(clipNormal.xy) / _ScreenParams.xy * _OutlineWidth * clipPosition.w * 2.0;
+                half outlineWidth = UNITY_ACCESS_INSTANCED_PROP(OutlineProps, _OutlineWidth);
+                float2 offset = normalize(clipNormal.xy) / _ScreenParams.xy * outlineWidth * clipPosition.w * 2.0;
                 clipPosition.xy += offset;
-                clipPosition.z -= _OutlineDepthOffset;
+                half outlineDepthOffset = UNITY_ACCESS_INSTANCED_PROP(OutlineProps, _OutlineDepthOffset);
+                clipPosition.z -= outlineDepthOffset;
                 return clipPosition;
             }
 
             half4 FragmentProgram() : SV_TARGET {
-                return _OutlineColor;
+                return UNITY_ACCESS_INSTANCED_PROP(OutlineProps, _OutlineColor);
             }
 
             ENDCG
         }
     }
     FallBack "Diffuse"
+    _FLAT_KIT_BUILT_IN_END_*/
+    // -----------------------------------------------
+
+    // -----------------------------------------------
+    //_FLAT_KIT_URP_BEGIN_
+    SubShader
+    {
+        Tags{"RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" "IgnoreProjector" = "True"}
+        LOD 300
+
+        UsePass "FlatKit/Stylized Surface/ForwardLit"
+        Pass {
+            Cull Front
+
+            CGPROGRAM
+            #include "UnityInstancing.cginc"
+
+            #pragma vertex VertexProgram
+            #pragma fragment FragmentProgram
+
+            UNITY_INSTANCING_BUFFER_START(OutlineProps)
+            UNITY_DEFINE_INSTANCED_PROP(half4, _OutlineColor)
+            UNITY_DEFINE_INSTANCED_PROP(half, _OutlineWidth)
+            UNITY_DEFINE_INSTANCED_PROP(half, _OutlineDepthOffset)
+            UNITY_INSTANCING_BUFFER_END(OutlineProps)
+
+            float4 VertexProgram(float4 position : POSITION, float3 normal : NORMAL) : SV_POSITION {
+                float4 clipPosition = UnityObjectToClipPos(position);
+                float3 clipNormal = mul((float3x3) UNITY_MATRIX_VP, mul((float3x3) UNITY_MATRIX_M, normal));
+                half outlineWidth = UNITY_ACCESS_INSTANCED_PROP(OutlineProps, _OutlineWidth);
+                float2 offset = normalize(clipNormal.xy) / _ScreenParams.xy * outlineWidth * clipPosition.w * 2.0;
+                clipPosition.xy += offset;
+                half outlineDepthOffset = UNITY_ACCESS_INSTANCED_PROP(OutlineProps, _OutlineDepthOffset);
+                clipPosition.z -= outlineDepthOffset;
+                return clipPosition;
+            }
+
+            half4 FragmentProgram() : SV_TARGET {
+                return UNITY_ACCESS_INSTANCED_PROP(OutlineProps, _OutlineColor);
+            }
+
+            ENDCG
+        }
+
+    }
+    FallBack "FlatKit/Stylized Surface"
+    //_FLAT_KIT_URP_END_
+    // -----------------------------------------------
+
     CustomEditor "StylizedSurfaceEditor"
 }
