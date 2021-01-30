@@ -4,5 +4,8 @@ using UnityEngine;
 
 public interface IDig 
 {
-    IMetal Dig(Vector3 position);
+    void Dig();
+
+    void DigStart();
+    void DigEnd();
 }
