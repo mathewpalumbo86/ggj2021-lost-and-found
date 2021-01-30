@@ -6,8 +6,6 @@ using UnityEngine;
 
 public class DigPaintGun : MonoBehaviour, IDig
 {
-    public InputActionReference useAction;
-    XRGrabInteractable grabInteractable;
 
     public int resolution = 512;
     Texture2D baseMap;
@@ -24,11 +22,6 @@ public class DigPaintGun : MonoBehaviour, IDig
 
     void Start()
     {
-        grabInteractable = GetComponent<XRGrabInteractable>();
-
-        useAction.action.started += Dig; //equivalent to GetKeyDown()
-        useAction.action.canceled += StopDigging; //Equivalent to GetKeyUp()
-
         CreateClearTexture();// clear white texture to draw on
     }
 
@@ -87,6 +80,16 @@ public class DigPaintGun : MonoBehaviour, IDig
         return rt;
     }
 
+    [ContextMenu("Clear RenderTextures")]
+    public void ClearRT()
+    {
+        foreach(var texture in paintTextures)
+        {
+            Graphics.Blit(baseMap, texture.Value);
+        }
+    }
+
+    
     void CreateClearTexture()
     {
         baseMap = new Texture2D(1, 1);
@@ -109,16 +112,5 @@ public class DigPaintGun : MonoBehaviour, IDig
         painting = false;
     }
 
-    public void Dig(InputAction.CallbackContext context)
-    {
-        if (grabInteractable.isSelected)
-        {
-            DigStart();
-        }
-    }
-
-    public void StopDigging(InputAction.CallbackContext context)
-    {
-        DigEnd();
-    }
+    
 }
