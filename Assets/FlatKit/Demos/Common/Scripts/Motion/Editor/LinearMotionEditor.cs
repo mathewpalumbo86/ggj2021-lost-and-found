@@ -4,7 +4,7 @@ using UnityEditor;
 namespace FlatKit {
     [CanEditMultipleObjects]
     [CustomEditor(typeof(LinearMotion))]
-    public class LinearMotionEditor : Editor {
+    public class LinearMotionEditor : UnityEditor.Editor {
         private SerializedProperty _translationMode;
         private SerializedProperty _translationVector;
         private SerializedProperty _translationSpeed;

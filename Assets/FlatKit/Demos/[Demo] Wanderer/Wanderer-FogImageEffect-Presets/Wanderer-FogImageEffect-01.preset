@@ -477,3 +477,7 @@ Preset:
     propertyPath: distanceHeightBlend
     value: 0.5
     objectReference: {fileID: 0}
+  - target: {fileID: 0}
+    propertyPath: material
+    value: 
+    objectReference: {fileID: 0}

@@ -2,36 +2,56 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
+using FlatKit.StylizedSurface;
 using UnityEditor;
 using UnityEngine;
 
-public class StylizedSurfaceEditor : UnityEditor.ShaderGUI {
+public enum SurfaceType {
+    Opaque,
+    Transparent
+}
+
+public enum BlendMode {
+    Alpha, // Old school alpha-blending mode, fresnel does not affect amount of transparency
+    Premultiply, // Physically plausible transparency mode, implemented as alpha pre-multiply
+    Additive,
+    Multiply
+}
+
+public enum RenderFace {
+    Front = 2,
+    Back = 1,
+    Both = 0
+}
+
+public class StylizedSurfaceEditor : ShaderGUI {
     private Material _target;
     private MaterialEditor _editor;
     private MaterialProperty[] _properties;
     private int _celShadingNumSteps = 0;
     private AnimationCurve _gradient = new AnimationCurve(new Keyframe(0, 0), new Keyframe(1, 1));
 
-    private static readonly Dictionary<string, bool> _foldoutStates = new Dictionary<string, bool>();
+    private static readonly Dictionary<string, bool> _foldoutStates =
+        new Dictionary<string, bool> {{"Rendering options", false}};
+
     private static readonly Color hashColor = new Color(0.85023f, 0.85034f, 0.85045f, 0.85056f);
-    private static readonly GUIContent staticLabel = new GUIContent();
     private static readonly int ColorPropertyName = Shader.PropertyToID("_Color");
 
     void DrawStandard(MaterialProperty property) {
         string displayName = property.displayName;
         // Remove everything in square brackets.
         displayName = Regex.Replace(displayName, @" ?\[.*?\]", string.Empty);
-        _editor.ShaderProperty(property, displayName);
+        Tooltips.map.TryGetValue(displayName, out string tooltip);
+        var guiContent = new GUIContent(displayName, tooltip);
+        _editor.ShaderProperty(property, guiContent);
     }
 
     MaterialProperty FindProperty(string name) {
         return FindProperty(name, _properties);
     }
 
-    static GUIContent MakeLabel(string text, string tooltip = null) {
-        staticLabel.text = text;
-        staticLabel.tooltip = tooltip;
-        return staticLabel;
+    bool HasProperty(string name) {
+        return _target != null && _target.HasProperty(name);
     }
 
     public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] properties) {
@@ -45,52 +65,42 @@ public class StylizedSurfaceEditor : UnityEditor.ShaderGUI {
         bool latestFoldoutState = false;
 
         foreach (MaterialProperty property in properties) {
-            bool skipProperty = false;
             string displayName = property.displayName;
-            
-            if (displayName.Contains("[_CELPRIMARYMODE_SINGLE]")) {
-                skipProperty = !_target.IsKeywordEnabled("_CELPRIMARYMODE_SINGLE");
+
+            if (displayName.Contains("[") && !displayName.Contains("FOLDOUT")) {
                 EditorGUI.indentLevel += 1;
             }
 
-            if (displayName.Contains("[_CELPRIMARYMODE_STEPS]")) {
-                skipProperty = !_target.IsKeywordEnabled("_CELPRIMARYMODE_STEPS");
-                EditorGUI.indentLevel += 1;
-            }
+            bool skipProperty = false;
+            skipProperty |= displayName.Contains("[_CELPRIMARYMODE_SINGLE]") &&
+                            !_target.IsKeywordEnabled("_CELPRIMARYMODE_SINGLE");
+            skipProperty |= displayName.Contains("[_CELPRIMARYMODE_STEPS]") &&
+                            !_target.IsKeywordEnabled("_CELPRIMARYMODE_STEPS");
+            skipProperty |= displayName.Contains("[_CELPRIMARYMODE_CURVE]") &&
+                            !_target.IsKeywordEnabled("_CELPRIMARYMODE_CURVE");
+            skipProperty |= displayName.Contains("[DR_CEL_EXTRA_ON]") && !property.name.Equals("_CelExtraEnabled") &&
+                            !_target.IsKeywordEnabled("DR_CEL_EXTRA_ON");
+            skipProperty |= displayName.Contains("[DR_SPECULAR_ON]") && !property.name.Equals("_SpecularEnabled") &&
+                            !_target.IsKeywordEnabled("DR_SPECULAR_ON");
+            skipProperty |= displayName.Contains("[DR_RIM_ON]") && !property.name.Equals("_RimEnabled") &&
+                            !_target.IsKeywordEnabled("DR_RIM_ON");
+            skipProperty |= displayName.Contains("[DR_GRADIENT_ON]") && !property.name.Equals("_GradientEnabled") &&
+                            !_target.IsKeywordEnabled("DR_GRADIENT_ON");
+            skipProperty |= displayName.Contains("[_UNITYSHADOWMODE_MULTIPLY]") &&
+                            !_target.IsKeywordEnabled("_UNITYSHADOWMODE_MULTIPLY");
+            skipProperty |= displayName.Contains("[_UNITYSHADOWMODE_COLOR]") &&
+                            !_target.IsKeywordEnabled("_UNITYSHADOWMODE_COLOR");
 
-            if (displayName.Contains("[_CELPRIMARYMODE_CURVE]")) {
-                skipProperty = !_target.IsKeywordEnabled("_CELPRIMARYMODE_CURVE");
-                EditorGUI.indentLevel += 1;
-            }
+            if (displayName.Contains("[DR_ENABLE_LIGHTMAP_DIR]")) {
+                var dirPitch = _target.GetFloat("_LightmapDirectionPitch");
+                var dirYaw = _target.GetFloat("_LightmapDirectionYaw");
 
-            if (displayName.Contains("[DR_CEL_EXTRA_ON]") && !property.name.Equals("_CelExtraEnabled")) {
-                skipProperty = !_target.IsKeywordEnabled("DR_CEL_EXTRA_ON");
-                EditorGUI.indentLevel += 1;
-            }
+                var dirPitchRad = dirPitch * Mathf.Deg2Rad;
+                var dirYawRad = dirYaw * Mathf.Deg2Rad;
 
-            if (displayName.Contains("[DR_SPECULAR_ON]") && !property.name.Equals("_SpecularEnabled")) {
-                skipProperty = !_target.IsKeywordEnabled("DR_SPECULAR_ON");
-                EditorGUI.indentLevel += 1;
-            }
-
-            if (displayName.Contains("[DR_RIM_ON]") && !property.name.Equals("_RimEnabled")) {
-                skipProperty = !_target.IsKeywordEnabled("DR_RIM_ON");
-                EditorGUI.indentLevel += 1;
-            }
-
-            if (displayName.Contains("[DR_GRADIENT_ON]") && !property.name.Equals("_GradientEnabled")) {
-                skipProperty = !_target.IsKeywordEnabled("DR_GRADIENT_ON");
-                EditorGUI.indentLevel += 1;
-            }
-
-            if (displayName.Contains("[_UNITYSHADOWMODE_MULTIPLY]")) {
-                skipProperty = !_target.IsKeywordEnabled("_UNITYSHADOWMODE_MULTIPLY");
-                EditorGUI.indentLevel += 1;
-            }
-
-            if (displayName.Contains("[_UNITYSHADOWMODE_COLOR]")) {
-                skipProperty = !_target.IsKeywordEnabled("_UNITYSHADOWMODE_COLOR");
-                EditorGUI.indentLevel += 1;
+                var direction = new Vector4(Mathf.Sin(dirPitchRad) * Mathf.Sin(dirYawRad), Mathf.Cos(dirPitchRad),
+                    Mathf.Sin(dirPitchRad) * Mathf.Cos(dirYawRad), 0.0f);
+                _target.SetVector("_LightmapDirection", direction);
             }
 
             if (displayName.Contains("FOLDOUT")) {
@@ -144,8 +154,8 @@ public class StylizedSurfaceEditor : UnityEditor.ShaderGUI {
             }
 
             if (!skipProperty &&
-                    property.type == MaterialProperty.PropType.Color && 
-                    property.colorValue == hashColor) {
+                property.type == MaterialProperty.PropType.Color &&
+                property.colorValue == hashColor) {
                 property.colorValue = _target.GetColor(ColorPropertyName);
             }
 
@@ -157,8 +167,148 @@ public class StylizedSurfaceEditor : UnityEditor.ShaderGUI {
             EditorGUI.indentLevel = originalIntentLevel;
         }
 
-        EditorGUILayout.Separator();
-        _editor.EnableInstancingField();
+        EditorGUILayout.Space();
+        _foldoutStates["Rendering options"] =
+            EditorGUILayout.Foldout(_foldoutStates["Rendering options"], "Rendering options");
+        if (_foldoutStates["Rendering options"]) {
+            EditorGUI.indentLevel += 1;
+
+            HandleUrpSettings(_target, _editor);
+
+            EditorGUILayout.Space();
+            _editor.EnableInstancingField();
+        }
+
+        /*
+        if (HasProperty("_MainTex")) {
+            TransferToBaseMap();
+        }
+        */
+    }
+
+    // Adapted from BaseShaderGUI.cs.
+    private void HandleUrpSettings(Material material, MaterialEditor materialEditor) {
+        bool alphaClip = false;
+        if (material.HasProperty("_AlphaClip")) {
+            alphaClip = material.GetFloat("_AlphaClip") >= 0.5;
+        }
+
+        if (alphaClip) {
+            material.EnableKeyword("_ALPHATEST_ON");
+        } else {
+            material.DisableKeyword("_ALPHATEST_ON");
+        }
+
+        if (HasProperty("_Surface")) {
+            EditorGUI.BeginChangeCheck();
+            var surfaceProp = FindProperty("_Surface");
+            EditorGUI.showMixedValue = surfaceProp.hasMixedValue;
+            var surfaceType = (SurfaceType) surfaceProp.floatValue;
+            EditorGUILayout.Separator();
+            surfaceType = (SurfaceType) EditorGUILayout.EnumPopup("Surface Type", surfaceType);
+            if (EditorGUI.EndChangeCheck()) {
+                materialEditor.RegisterPropertyChangeUndo("Surface Type");
+                surfaceProp.floatValue = (float) surfaceType;
+            }
+
+            if (surfaceType == SurfaceType.Opaque) {
+                if (alphaClip) {
+                    material.renderQueue = (int) UnityEngine.Rendering.RenderQueue.AlphaTest;
+                    material.SetOverrideTag("RenderType", "TransparentCutout");
+                } else {
+                    material.renderQueue = (int) UnityEngine.Rendering.RenderQueue.Geometry;
+                    material.SetOverrideTag("RenderType", "Opaque");
+                }
+
+                material.renderQueue +=
+                    material.HasProperty("_QueueOffset") ? (int) material.GetFloat("_QueueOffset") : 0;
+                material.SetInt("_SrcBlend", (int) UnityEngine.Rendering.BlendMode.One);
+                material.SetInt("_DstBlend", (int) UnityEngine.Rendering.BlendMode.Zero);
+                material.SetInt("_ZWrite", 1);
+                material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+                material.SetShaderPassEnabled("ShadowCaster", true);
+            } else // Transparent
+            {
+                BlendMode blendMode = (BlendMode) material.GetFloat("_Blend");
+
+                // Specific Transparent Mode Settings
+                switch (blendMode) {
+                    case BlendMode.Alpha:
+                        material.SetInt("_SrcBlend", (int) UnityEngine.Rendering.BlendMode.SrcAlpha);
+                        material.SetInt("_DstBlend", (int) UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                        material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+                        break;
+                    case BlendMode.Premultiply:
+                        material.SetInt("_SrcBlend", (int) UnityEngine.Rendering.BlendMode.One);
+                        material.SetInt("_DstBlend", (int) UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                        material.EnableKeyword("_ALPHAPREMULTIPLY_ON");
+                        break;
+                    case BlendMode.Additive:
+                        material.SetInt("_SrcBlend", (int) UnityEngine.Rendering.BlendMode.SrcAlpha);
+                        material.SetInt("_DstBlend", (int) UnityEngine.Rendering.BlendMode.One);
+                        material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+                        break;
+                    case BlendMode.Multiply:
+                        material.SetInt("_SrcBlend", (int) UnityEngine.Rendering.BlendMode.DstColor);
+                        material.SetInt("_DstBlend", (int) UnityEngine.Rendering.BlendMode.Zero);
+                        material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+                        material.EnableKeyword("_ALPHAMODULATE_ON");
+                        break;
+                }
+
+                // General Transparent Material Settings
+                material.SetOverrideTag("RenderType", "Transparent");
+                material.SetInt("_ZWrite", 0);
+                material.renderQueue = (int) UnityEngine.Rendering.RenderQueue.Transparent;
+                material.renderQueue +=
+                    material.HasProperty("_QueueOffset") ? (int) material.GetFloat("_QueueOffset") : 0;
+                material.SetShaderPassEnabled("ShadowCaster", false);
+            }
+
+            // DR: draw popup.
+            if (surfaceType == SurfaceType.Transparent && HasProperty("_Blend")) {
+                EditorGUI.BeginChangeCheck();
+                var blendModeProp = FindProperty("_Blend");
+                EditorGUI.showMixedValue = blendModeProp.hasMixedValue;
+                var blendMode = (BlendMode) blendModeProp.floatValue;
+                blendMode = (BlendMode) EditorGUILayout.EnumPopup("Blend Mode", blendMode);
+                if (EditorGUI.EndChangeCheck()) {
+                    materialEditor.RegisterPropertyChangeUndo("Blend Mode");
+                    blendModeProp.floatValue = (float) blendMode;
+                }
+            }
+        }
+
+        // DR: draw popup.
+        if (HasProperty("_Cull")) {
+            EditorGUILayout.Separator();
+            EditorGUI.BeginChangeCheck();
+            var cullingProp = FindProperty("_Cull");
+            EditorGUI.showMixedValue = cullingProp.hasMixedValue;
+            var culling = (RenderFace) cullingProp.floatValue;
+            culling = (RenderFace) EditorGUILayout.EnumPopup("Render Faces", culling);
+            if (EditorGUI.EndChangeCheck()) {
+                materialEditor.RegisterPropertyChangeUndo("Render Faces");
+                cullingProp.floatValue = (float) culling;
+                material.doubleSidedGI = (RenderFace) cullingProp.floatValue != RenderFace.Front;
+            }
+        }
+
+        if (HasProperty("_AlphaClip")) {
+            EditorGUILayout.Separator();
+            EditorGUI.BeginChangeCheck();
+            var alphaClipProp = FindProperty("_AlphaClip");
+            EditorGUI.showMixedValue = alphaClipProp.hasMixedValue;
+            var alphaClipEnabled = EditorGUILayout.Toggle("Alpha Clipping", alphaClipProp.floatValue == 1);
+            if (EditorGUI.EndChangeCheck())
+                alphaClipProp.floatValue = alphaClipEnabled ? 1 : 0;
+            EditorGUI.showMixedValue = false;
+
+            if (alphaClipProp.floatValue == 1 && HasProperty("_Cutoff")) {
+                var alphaCutoffProp = FindProperty("_Cutoff");
+                materialEditor.ShaderProperty(alphaCutoffProp, "Threshold", 1);
+            }
+        }
     }
 
     private void PromptTextureSave(MaterialEditor materialEditor, Func<Texture2D> generate, string propertyName,
@@ -232,9 +382,10 @@ public class StylizedSurfaceEditor : UnityEditor.ShaderGUI {
         }
 
         //22b5f7ed-989d-49d1-90d9-c62d76c3081a
-        
+
         Debug.Assert(importer,
-            string.Format("Could not change import settings of {0} [{1}]", fullPath, pathRelativeToAssets));
+            string.Format("[FlatKit] Could not change import settings of {0} [{1}]",
+                fullPath, pathRelativeToAssets));
     }
 
     private static Texture2D LoadTexture(string fullPath) {
@@ -254,5 +405,25 @@ public class StylizedSurfaceEditor : UnityEditor.ShaderGUI {
 
     private static string ConvertFullPathToAssetPath(string fullPath) {
         return fullPath.Remove(0, fullPath.IndexOf("Assets", StringComparison.Ordinal));
+    }
+
+    private void TransferToBaseMap() {
+        var baseMapProp = FindProperty("_MainTex");
+        var baseColorProp = FindProperty("_Color");
+        _target.SetTexture("_BaseMap", baseMapProp.textureValue);
+        var baseMapTiling = baseMapProp.textureScaleAndOffset;
+        _target.SetTextureScale("_BaseMap", new Vector2(baseMapTiling.x, baseMapTiling.y));
+        _target.SetTextureOffset("_BaseMap", new Vector2(baseMapTiling.z, baseMapTiling.w));
+        _target.SetColor("_BaseColor", baseColorProp.colorValue);
+    }
+
+    private void TransferToMainTex() {
+        var baseMapProp = FindProperty("_BaseMap");
+        var baseColorProp = FindProperty("_BaseColor");
+        _target.SetTexture("_MainTex", baseMapProp.textureValue);
+        var baseMapTiling = baseMapProp.textureScaleAndOffset;
+        _target.SetTextureScale("_MainTex", new Vector2(baseMapTiling.x, baseMapTiling.y));
+        _target.SetTextureOffset("_MainTex", new Vector2(baseMapTiling.z, baseMapTiling.w));
+        _target.SetColor("_Color", baseColorProp.colorValue);
     }
 }
