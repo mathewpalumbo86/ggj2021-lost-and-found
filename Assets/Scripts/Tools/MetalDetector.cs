@@ -13,6 +13,13 @@ public class MetalDetector : PlayerTool, IDetector
 
     LayerMask metalLayer;
 
+    INote note;
+
+    private void Start()
+    {
+        note = GetComponentInChildren<INote>();
+    }
+
     public void Activate()
     {
         
@@ -44,7 +51,13 @@ public class MetalDetector : PlayerTool, IDetector
 
     public void DetectedNearby(float distance)
     {
+        float minDistance = 0.2f;
+        float maxDistance = 1f;
+        distance = Mathf.Clamp(distance, minDistance, maxDistance);
+        distance = (distance - minDistance) / (maxDistance - minDistance);
+        distance = 1 - distance;
         Debug.Log(distance);
-        Detected?.Invoke(distance);
+        note.SetStrength(distance);
+        //Detected?.Invoke(distance);
     }
 }
