@@ -5,12 +5,11 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.XR.Interaction.Toolkit;
 
-public class DiggingGun : PlayerTool
+public class DiggingGun : PlayerTool, IDig
 {
 
     public InputActionReference useAction;
     XRGrabInteractable grabInteractable;
-    
 
     [SerializeField]
     float range, forceOffset, force;
@@ -19,8 +18,16 @@ public class DiggingGun : PlayerTool
     LayerMask sand;
 
     [SerializeField]
-    bool shoot;
+    bool digging;
 
+    private void Update()
+    {
+        if (digging)
+        {
+            GetDigPoint();
+        }
+        
+	}
 
 
     private void Start()
@@ -37,19 +44,6 @@ public class DiggingGun : PlayerTool
         /// 3: Check for that Bool on Update()
     }
 
-
-
-    private void Update()
-    {
-        if (shoot)
-        {
-            GetDigPoint();
-        }
-
-        //if (Input.GetKeyDown(KeyCode.Space))
-        //    shoot = !shoot;
-    }
-
     void GetDigPoint()
     {
         RaycastHit hit;
@@ -64,18 +58,42 @@ public class DiggingGun : PlayerTool
             deformer.AddDeformingForce(point, force);
         }
     }
+
+    public void Dig()
+    {
+        GetDigPoint();
+    }
+
+    public void DigStart()
+    {
+        digging = true;
+    }
+
+    public void DigEnd()
+    {
+        digging = false;
+    }
+
+    void DrawTexture()
+    {
+        RaycastHit hit;
+        Debug.DrawLine(transform.position, (transform.forward * range) + transform.position, Color.red, 0.1f);
+        Physics.Raycast(transform.position, transform.forward, out hit, range, sand);
+
+    }
+
  
     public void Dig(InputAction.CallbackContext context)
     {
         if (grabInteractable.isSelected)
         {
-            shoot = true; 
+            DigStart();
         }
     }
 
     public void StopDigging(InputAction.CallbackContext context)
     {
-        shoot = false;
+        DigEnd();
     }
 
     
