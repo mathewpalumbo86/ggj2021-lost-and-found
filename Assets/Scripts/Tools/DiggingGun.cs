@@ -1,5 +1,3 @@
-
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -12,8 +10,6 @@ public class DiggingGun : PlayerTool, IDig
 
     public InputActionReference useAction;
     XRGrabInteractable grabInteractable;
-    
-
 
     [SerializeField]
     float range, forceOffset, force;
@@ -46,19 +42,6 @@ public class DiggingGun : PlayerTool, IDig
         /// 1: Set a bool as true inside Dig
         /// 2: Set that bool to false inside StopDigging()
         /// 3: Check for that Bool on Update()
-    }
-
-
-
-    private void Update()
-    {
-        if (shoot)
-        {
-            GetDigPoint();
-        }
-
-        //if (Input.GetKeyDown(KeyCode.Space))
-        //    shoot = !shoot;
     }
 
     void GetDigPoint()
@@ -104,13 +87,13 @@ public class DiggingGun : PlayerTool, IDig
     {
         if (grabInteractable.isSelected)
         {
-            shoot = true; 
+            DigStart();
         }
     }
 
     public void StopDigging(InputAction.CallbackContext context)
     {
-        shoot = false;
+        DigEnd();
     }
 
     

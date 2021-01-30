@@ -1,9 +1,14 @@
+using UnityEngine.InputSystem;
+using UnityEngine.XR.Interaction.Toolkit;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class DigPaintGun : MonoBehaviour, IDig
 {
+    public InputActionReference useAction;
+    XRGrabInteractable grabInteractable;
+
     public int resolution = 512;
     Texture2D baseMap;
     public float brushSize;
@@ -14,10 +19,16 @@ public class DigPaintGun : MonoBehaviour, IDig
     [SerializeField]
     LayerMask sand;
 
+    [SerializeField]
     bool painting;
 
     void Start()
     {
+        grabInteractable = GetComponent<XRGrabInteractable>();
+
+        useAction.action.started += Dig; //equivalent to GetKeyDown()
+        useAction.action.canceled += StopDigging; //Equivalent to GetKeyUp()
+
         CreateClearTexture();// clear white texture to draw on
     }
 
@@ -96,5 +107,18 @@ public class DigPaintGun : MonoBehaviour, IDig
     public void DigEnd()
     {
         painting = false;
+    }
+
+    public void Dig(InputAction.CallbackContext context)
+    {
+        if (grabInteractable.isSelected)
+        {
+            DigStart();
+        }
+    }
+
+    public void StopDigging(InputAction.CallbackContext context)
+    {
+        DigEnd();
     }
 }
