@@ -8,9 +8,15 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/Scenes/SampleScene.unity
     guid: d1c3109bdb54ad54c8a2b2838528e640
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/XR Rig.unity
     guid: dfc4df03e3b0fe04a9665ee26cd92d1e
+  - enabled: 1
+    path: Assets/Scenes/Title Scene.unity
+    guid: 5a1b5e03250d26c45b672f8d6b90a910
+  - enabled: 1
+    path: Assets/Scenes/Matt Level Test.unity
+    guid: 8c3c43f6dfad9f34ea1e5c7959789929
   m_configObjects:
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 945f4d5cdd0ddc44d99b21ec2b38d2c3, type: 2}
     com.unity.xr.openxr.settings4: {fileID: 11400000, guid: 29f46acb76a99cd44801b2233543e1eb, type: 2}
