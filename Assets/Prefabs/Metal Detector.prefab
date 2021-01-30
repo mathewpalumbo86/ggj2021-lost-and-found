@@ -43,8 +43,8 @@ BoxCollider:
   m_IsTrigger: 1
   m_Enabled: 1
   serializedVersion: 2
-  m_Size: {x: 1, y: 0.5, z: 1}
-  m_Center: {x: 0, y: -0.25, z: 0}
+  m_Size: {x: 1, y: 1.5408893, z: 1}
+  m_Center: {x: 0, y: -0.77044463, z: 0}
 --- !u!114 &8948185787758740369
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -70,7 +70,8 @@ GameObject:
   - component: {fileID: 4980644347526709203}
   - component: {fileID: 5797799697764035761}
   - component: {fileID: 9035670041676271899}
-  m_Layer: 6
+  - component: {fileID: 1493663035}
+  m_Layer: 0
   m_Name: Metal Detector
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -172,7 +173,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_InteractionManager: {fileID: 0}
-  m_Colliders: []
+  m_Colliders:
+  - {fileID: 1493663035}
   m_InteractionLayerMask:
     serializedVersion: 2
     m_Bits: 4294967295
@@ -230,7 +232,7 @@ MonoBehaviour:
       m_Calls: []
   m_AttachTransform: {fileID: 0}
   m_AttachEaseInTime: 0.15
-  m_MovementType: 1
+  m_MovementType: 2
   m_TrackPosition: 1
   m_SmoothPosition: 0
   m_SmoothPositionAmount: 5
@@ -260,3 +262,16 @@ MonoBehaviour:
   m_ThrowAngularVelocityScale: 1
   m_ForceGravityOnDetach: 0
   m_RetainTransformParent: 1
+--- !u!65 &1493663035
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6781912879903628806}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Size: {x: 0.15109539, y: 0.31250846, z: 0.2317096}
+  m_Center: {x: -0.00037920475, y: -0.0041249394, z: 0.017344534}
