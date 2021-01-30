@@ -5,16 +5,19 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/Title Scene.unity
+    guid: 5a1b5e03250d26c45b672f8d6b90a910
+  - enabled: 1
+    path: Assets/Scenes/Build Scene.unity
+    guid: f04085cb9bea6dd498fdc314835bd3ff
   - enabled: 0
     path: Assets/Scenes/SampleScene.unity
     guid: d1c3109bdb54ad54c8a2b2838528e640
   - enabled: 0
     path: Assets/Scenes/XR Rig.unity
     guid: dfc4df03e3b0fe04a9665ee26cd92d1e
-  - enabled: 1
-    path: Assets/Scenes/Title Scene.unity
-    guid: 5a1b5e03250d26c45b672f8d6b90a910
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/Matt Level Test.unity
     guid: 8c3c43f6dfad9f34ea1e5c7959789929
   m_configObjects:
