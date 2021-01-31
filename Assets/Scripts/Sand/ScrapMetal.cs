@@ -7,6 +7,8 @@ public class ScrapMetal : MonoBehaviour, IMetal
 {
 
     XRGrabInteractable grab;
+
+    bool isSeen;
     private void Start()
     {
         grab = GetComponent<XRGrabInteractable>();
@@ -32,12 +34,12 @@ public class ScrapMetal : MonoBehaviour, IMetal
     {
         if(grab && !grab.enabled)
             grab.enabled = true;
+
+        isSeen = true;
     }
 
     public bool CheckSeen()
     {
-        if (grab)
-            return grab.enabled;
-        else return false;
+        return isSeen;
     }
 }
