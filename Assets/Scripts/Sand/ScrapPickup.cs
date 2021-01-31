@@ -6,8 +6,6 @@ using UnityEngine.XR.Interaction.Toolkit;
 public class ScrapPickup : MonoBehaviour
 {
 
-    public int itemValue;
-
     AudioSource audioSource;
 
     public AudioClip clip;
@@ -25,6 +23,8 @@ public class ScrapPickup : MonoBehaviour
     {
         audioSource.PlayOneShot(clip);
         scrap.Collect();
+        ObjectCollector.instance.SetIntemNumber(ScrapMetal.GetFoundText());
+        ObjectCollector.instance.SetTotalValue(ScrapMetal.GetTotalValue());
     }
 
 }

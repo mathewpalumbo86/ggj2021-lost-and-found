@@ -11,12 +11,17 @@ public class ScrapMetal : MonoBehaviour, IMetal
     bool isSeen, isFound;
 
     static int found, total;
+    static float totalValue;
+
+    float value;
 
     private void Start()
     {
         grab = GetComponent<XRGrabInteractable>();
         if(grab) grab.enabled = false;
         total++;
+
+        value = ((float)Random.Range(0, 200))/100;
     }
 
     public IMetal Collect()
@@ -25,6 +30,7 @@ public class ScrapMetal : MonoBehaviour, IMetal
         {
             isFound = true;
             found++;
+            totalValue += value;
         }
 
         return this;
@@ -62,4 +68,15 @@ public class ScrapMetal : MonoBehaviour, IMetal
     {
         return found;
     }
+
+    public static string GetFoundText()
+    {
+        return found + "/" + total;
+    }
+
+    public static string GetTotalValue()
+    {
+        return "$" + totalValue;
+    }
+
 }
