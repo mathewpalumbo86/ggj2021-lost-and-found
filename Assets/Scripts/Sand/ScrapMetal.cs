@@ -12,7 +12,7 @@ public class ScrapMetal : MonoBehaviour, IMetal
     private void Start()
     {
         grab = GetComponent<XRGrabInteractable>();
-        grab.enabled = false;
+        if(grab) grab.enabled = false;
     }
 
     public IMetal Collect()
