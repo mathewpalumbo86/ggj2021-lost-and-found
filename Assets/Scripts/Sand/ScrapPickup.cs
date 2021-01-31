@@ -12,15 +12,19 @@ public class ScrapPickup : MonoBehaviour
 
     public AudioClip clip;
 
+    IMetal scrap;
+
 
     private void Start()
     {
+        scrap = GetComponent<IMetal>();
         audioSource = GetComponent<AudioSource>();
     }
 
     public void Pickup()
     {
         audioSource.PlayOneShot(clip);
+        scrap.Collect();
     }
 
 }

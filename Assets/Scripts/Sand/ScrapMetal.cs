@@ -8,15 +8,25 @@ public class ScrapMetal : MonoBehaviour, IMetal
 
     XRGrabInteractable grab;
 
-    bool isSeen;
+    bool isSeen, isFound;
+
+    static int found, total;
+
     private void Start()
     {
         grab = GetComponent<XRGrabInteractable>();
         if(grab) grab.enabled = false;
+        total++;
     }
 
     public IMetal Collect()
     {
+        if (!isFound)
+        {
+            isFound = true;
+            found++;
+        }
+
         return this;
     }
 
@@ -41,5 +51,15 @@ public class ScrapMetal : MonoBehaviour, IMetal
     public bool CheckSeen()
     {
         return isSeen;
+    }
+
+    public static int GetTotalCount()
+    {
+        return total;
+    }
+
+    public static int GetFound()
+    {
+        return found;
     }
 }
