@@ -5,7 +5,7 @@ using UnityEngine;
 public interface IMetal
 {
     IMetal Collect();
-    void Dig();
+    bool CheckSeen();
 
     Vector3 GetPosition();
     bool IsHigher(float height);
