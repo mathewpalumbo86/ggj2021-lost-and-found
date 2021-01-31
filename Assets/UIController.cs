@@ -53,7 +53,17 @@ public class UIController : MonoBehaviour
     public void Quit()
     {
         Debug.Log("quitting");
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#endif
+
+#if UNITY_ANDROID
         Application.Quit();
+#endif
+
+#if UNITY_STANDALONE
+        Application.Quit();
+#endif
     }
 
 }
