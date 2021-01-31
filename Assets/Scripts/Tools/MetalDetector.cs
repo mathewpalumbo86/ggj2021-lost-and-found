@@ -52,7 +52,7 @@ public class MetalDetector : PlayerTool, IDetector
     public void DetectedNearby(float distance)
     {
         float minDistance = 0.2f;
-        float maxDistance = 1f;
+        float maxDistance = 1.5f;
         distance = Mathf.Clamp(distance, minDistance, maxDistance);
         distance = (distance - minDistance) / (maxDistance - minDistance);
         distance = 1 - distance;

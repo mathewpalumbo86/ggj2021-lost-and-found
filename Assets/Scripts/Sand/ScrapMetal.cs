@@ -1,16 +1,18 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.XR.Interaction.Toolkit;
 
 public class ScrapMetal : MonoBehaviour, IMetal
 {
 
-    Collider col;
+    XRGrabInteractable grab;
 
+    bool isSeen;
     private void Start()
     {
-        col = GetComponent<Collider>();
-        col.enabled = false;
+        grab = GetComponent<XRGrabInteractable>();
+        if(grab) grab.enabled = false;
     }
 
     public IMetal Collect()
@@ -30,14 +32,14 @@ public class ScrapMetal : MonoBehaviour, IMetal
 
     private void OnWillRenderObject()
     {
-        if(col && !col.enabled)
-            col.enabled = true;
+        if(grab && !grab.enabled)
+            grab.enabled = true;
+
+        isSeen = true;
     }
 
     public bool CheckSeen()
     {
-        if (col)
-            return col.enabled;
-        else return false;
+        return isSeen;
     }
 }
