@@ -17,7 +17,7 @@ public class ObjectPlacer : MonoBehaviour
     Transform startSquare, endSquare;
 
     [SerializeField]
-    float yPosition, rayDistance;
+    float yPosition;
 
     [SerializeField]
     LayerMask sand;
@@ -64,9 +64,10 @@ public class ObjectPlacer : MonoBehaviour
     Vector3 RayCastDown(Vector3 startRay, float buryDistance)
     {
         Vector3 point = new Vector3();
+        float height = yPosition - startRay.y;
         startRay.y = yPosition;
         RaycastHit hit;
-        if (Physics.Raycast(startRay, Vector3.down, out hit, rayDistance, sand))
+        if (Physics.Raycast(startRay, Vector3.down, out hit, height + 2, sand))
         {
             if (hit.collider.tag == "Water" || hit.collider.tag == "Rock")
             {
